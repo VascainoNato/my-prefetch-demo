@@ -1,12 +1,10 @@
 import React from 'react';
-import { SWRConfig } from 'swr';
 import { usePostsOptimized } from '../hooks/usePostsOptimized';
-import { fetcher } from '../hooks/useFetcher';
 import LoadingSpinner from './LoadingSpinner';
 
 const PostItemOptimized: React.FC<{ 
   post: { id: number; title: string; body: string }; 
-  onSelect: (postId: number) => void;
+  onToggle: (postId: number) => void;
   onPrefetch: (postId: number) => void;
   isSelected: boolean;
   comments: any[];
@@ -14,7 +12,7 @@ const PostItemOptimized: React.FC<{
   commentsError: any;
 }> = ({ 
   post, 
-  onSelect, 
+  onToggle, 
   onPrefetch, 
   isSelected, 
   comments, 
@@ -25,7 +23,7 @@ const PostItemOptimized: React.FC<{
     <li
       className="border p-4 rounded-md cursor-pointer hover:bg-gray-50"
       onMouseEnter={() => onPrefetch(post.id)}
-      onClick={() => onSelect(post.id)}
+      onClick={() => onToggle(post.id)}
     >
       <h4 className="font-medium text-lg">{post.title}</h4>
       <p className="text-gray-600 text-sm">{post.body.substring(0, 100)}...</p>
@@ -60,7 +58,7 @@ const PostListOptimized: React.FC = () => {
     loadingComments,
     postsError,
     commentsError,
-    selectPost,
+    togglePost,
     prefetchComments,
     selectedPostId,
   } = usePostsOptimized();
@@ -81,7 +79,7 @@ const PostListOptimized: React.FC = () => {
           <PostItemOptimized 
             key={post.id} 
             post={post}
-            onSelect={selectPost}
+            onToggle={togglePost}
             onPrefetch={prefetchComments}
             isSelected={selectedPostId === post.id}
             comments={comments || []}
@@ -94,11 +92,4 @@ const PostListOptimized: React.FC = () => {
   );
 };
 
-// Wrapper for SWRConfig to define base URL
-const OptimizedWrapper: React.FC = () => (
-  <SWRConfig value={{ fetcher: (resource, init) => fetcher(`https://jsonplaceholder.typicode.com${resource}`, init) }}>
-    <PostListOptimized />
-  </SWRConfig>
-);
-
-export default OptimizedWrapper;
+export default PostListOptimized;

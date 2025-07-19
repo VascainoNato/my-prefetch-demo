@@ -6,10 +6,11 @@ const PostListUnoptimized: React.FC = () => {
   const {
     posts,
     loadingPosts,
+    selectedPostId,
     selectedPostComments,
     loadingComments,
     error,
-    fetchComments,
+    togglePost,
   } = usePostsUnoptimized();
 
   if (loadingPosts) {
@@ -28,16 +29,16 @@ const PostListUnoptimized: React.FC = () => {
           <li 
             key={post.id} 
             className="border p-4 rounded-md cursor-pointer hover:bg-gray-50" 
-            onClick={() => fetchComments(post.id)}
+            onClick={() => togglePost(post.id)}
           >
             <h4 className="font-medium text-lg">{post.title}</h4>
             <p className="text-gray-600 text-sm">{post.body.substring(0, 100)}...</p>
             
-            {loadingComments && selectedPostComments === null && (
+            {selectedPostId === post.id && loadingComments && selectedPostComments === null && (
               <LoadingSpinner />
             )}
             
-            {selectedPostComments && selectedPostComments.length > 0 && (
+            {selectedPostId === post.id && selectedPostComments && selectedPostComments.length > 0 && (
               <div className="mt-4 border-t pt-4">
                 <h5 className="font-semibold mb-2">Comments:</h5>
                 <ul className="text-sm space-y-1">
