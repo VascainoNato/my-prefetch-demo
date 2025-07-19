@@ -55,17 +55,18 @@ npm run dev
 # or
 yarn dev
 Open your browser and navigate to http://localhost:3000 to see the app in action.
-Usage
-Explore the two sections on the page:
-Single Query: Click on posts to fetch comments with no caching.
-Optimized: Hover over posts to prefetch comments, then click to view instantly from cache.
-Use Chrome DevTools and Lighthouse to measure and compare performance.
-Live Demo
-Try the live demo hosted on Vercel:
-https://my-prefetch-demo.vercel.app/
+```
+### Usage
+- Single Query: Click on posts to fetch comments with no caching.
+- Optimized: Hover over posts to prefetch comments, then click to view instantly from cache.
+- Use Chrome DevTools and Lighthouse to measure and compare performance.
+  
+### Live Demo
+- Try the live demo hosted on Vercel:
+- https://my-prefetch-demo.vercel.app/
 
-Contributing
-Contributions, issues, and feature requests are welcome! Feel free to check the issues page.
-
-License
-This project is licensed under the MIT License.
+### Contributing
+- Contributions, issues, and feature requests are welcome! Feel free to check the issues page.
+  
+### License
+- This project is licensed under the MIT License.
