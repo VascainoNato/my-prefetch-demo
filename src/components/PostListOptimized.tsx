@@ -1,23 +1,24 @@
 import React from 'react';
 import { usePostsOptimized } from '../hooks/usePostsOptimized';
 import LoadingSpinner from './LoadingSpinner';
+import { PostMetrics } from './PostMetrics';
 
 const PostItemOptimized: React.FC<{ 
-  post: { id: number; title: string; body: string }; 
+  post: { id: number; title: string; body: string; userId: number }; 
   onToggle: (postId: number) => void;
   onPrefetch: (postId: number) => void;
   isSelected: boolean;
-  comments: any[];
-  loadingComments: boolean;
-  commentsError: any;
+  postDetails: any;
+  loadingDetails: boolean;
+  detailsError: any;
 }> = ({ 
   post, 
   onToggle, 
   onPrefetch, 
   isSelected, 
-  comments, 
-  loadingComments, 
-  commentsError 
+  postDetails, 
+  loadingDetails, 
+  detailsError
 }) => {
   return (
     <li
@@ -30,18 +31,83 @@ const PostItemOptimized: React.FC<{
 
       {isSelected && (
         <div>
-          {commentsError && <div className="text-red-500 mt-2">Error loading comments.</div>}
-          {loadingComments && !comments && <LoadingSpinner />}
-          {comments && comments.length > 0 && (
-            <div className="mt-4 border-t pt-4">
-              <h5 className="font-semibold mb-2">Comments:</h5>
-              <ul className="text-sm space-y-1">
-                {comments.map(comment => (
-                  <li key={comment.id} className="bg-gray-100 p-2 rounded-sm">
-                    <span className="font-medium">{comment.email}:</span> {comment.body.substring(0, 50)}...
-                  </li>
-                ))}
-              </ul>
+          {detailsError && <div className="text-red-500 mt-2">Error loading details.</div>}
+          {loadingDetails && !postDetails && <LoadingSpinner />}
+          {postDetails && postDetails.user && (
+            <div className="mt-4 border-t pt-4 space-y-4">
+              {/* Performance Metrics */}
+              <PostMetrics 
+                postId={post.id} 
+                isOptimized={true} 
+                isLoading={loadingDetails}
+                hasData={!!postDetails}
+              />
+
+              {/* User Info */}
+              <div>
+                <h5 className="font-semibold mb-2 text-gray-800">Author:</h5>
+                <div className="bg-gray-100 p-3 rounded-md">
+                  <div className="font-medium">{postDetails.user.name}</div>
+                  <div className="text-sm text-gray-600">@{postDetails.user.username}</div>
+                  <div className="text-sm text-gray-600">{postDetails.user.email}</div>
+                  <div className="text-sm text-gray-600">{postDetails.user.phone}</div>
+                </div>
+              </div>
+
+              {/* Comments */}
+              {postDetails.comments && postDetails.comments.length > 0 && (
+                <div>
+                  <h5 className="font-semibold mb-2">Comments ({postDetails.comments.length}):</h5>
+                  <ul className="text-sm space-y-2">
+                    {postDetails.comments.slice(0, 3).map((comment: any) => (
+                      <li key={comment.id} className="bg-gray-100 p-2 rounded-sm">
+                        <span className="font-medium">{comment.email}:</span> {comment.body.substring(0, 50)}...
+                      </li>
+                    ))}
+                    {postDetails.comments.length > 3 && (
+                      <li className="text-gray-500 text-xs">... and {postDetails.comments.length - 3} more comments</li>
+                    )}
+                  </ul>
+                </div>
+              )}
+
+              {/* Albums */}
+              {postDetails.albums && postDetails.albums.length > 0 && (
+                <div>
+                  <h5 className="font-semibold mb-2">Albums ({postDetails.albums.length}):</h5>
+                  <ul className="text-sm space-y-1">
+                    {postDetails.albums.slice(0, 3).map((album: any) => (
+                      <li key={album.id} className="bg-gray-100 p-2 rounded-sm">
+                        <span className="font-medium">{album.title}</span>
+                      </li>
+                    ))}
+                    {postDetails.albums.length > 3 && (
+                      <li className="text-gray-500 text-xs">... and {postDetails.albums.length - 3} more albums</li>
+                    )}
+                  </ul>
+                </div>
+              )}
+
+              {/* Photos */}
+              {postDetails.photos && postDetails.photos.length > 0 && (
+                <div>
+                  <h5 className="font-semibold mb-2">Photos ({postDetails.photos.length}):</h5>
+                  <div className="grid grid-cols-3 gap-2">
+                    {postDetails.photos.slice(0, 6).map((photo: any) => (
+                      <div key={photo.id} className="aspect-square bg-gray-200 rounded-md overflow-hidden">
+                        <img 
+                          src={photo.thumbnailUrl} 
+                          alt={photo.title}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  {postDetails.photos.length > 6 && (
+                    <div className="text-gray-500 text-xs mt-2">... and {postDetails.photos.length - 6} more photos</div>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -53,15 +119,24 @@ const PostItemOptimized: React.FC<{
 const PostListOptimized: React.FC = () => {
   const {
     posts,
-    comments,
+    postDetails,
     loadingPosts,
     loadingComments,
+    loadingUser,
+    loadingAlbums,
+    loadingPhotos,
     postsError,
     commentsError,
+    userError,
+    albumsError,
+    photosError,
     togglePost,
-    prefetchComments,
+    prefetchPostData,
     selectedPostId,
   } = usePostsOptimized();
+
+  const loadingDetails = loadingComments || loadingUser || loadingAlbums || loadingPhotos;
+  const detailsError = commentsError || userError || albumsError || photosError;
 
   if (loadingPosts) {
     return <LoadingSpinner />;
@@ -74,17 +149,18 @@ const PostListOptimized: React.FC = () => {
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
       <h3 className="text-xl font-semibold mb-4">Optimized with Prefetch, Polling and Cache (SWR)</h3>
+      
       <ul className="space-y-4">
         {posts?.map(post => (
           <PostItemOptimized 
             key={post.id} 
             post={post}
             onToggle={togglePost}
-            onPrefetch={prefetchComments}
+            onPrefetch={prefetchPostData}
             isSelected={selectedPostId === post.id}
-            comments={comments || []}
-            loadingComments={loadingComments}
-            commentsError={commentsError}
+            postDetails={postDetails}
+            loadingDetails={loadingDetails}
+            detailsError={detailsError}
           />
         ))}
       </ul>
